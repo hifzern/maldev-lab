@@ -19,7 +19,7 @@ void rc4Init(Rc4Context* context, const unsigned char* key, size_t length)
 
     //check parameter
     if (context == NULL || key == NULL)
-        return return;
+        return;
 
     //clear context
     context->i = 0;
@@ -91,11 +91,11 @@ int main()
     Rc4Context ctx = { 0 };
 
     //key
-    unsigned char* key = "strongkey"; //replacement
+    unsigned char* key = (unsigned char*)"strongkey"; //replacement
     rc4Init(&ctx, key, strlen((char*) key));
 
     //encrypt
-    rc4Cipher(&ctx, ciphertext, plaintext, sizeof(ciphertext));
+    rc4Cipher(&ctx, plaintext, ciphertext, sizeof(ciphertext));
 
     //print
     std::cout << "enc : ";
