@@ -19,11 +19,17 @@ void rc4Init(Rc4Context* context, const unsigned char* key, size_t length)
 
     //check parameter
     if (context == NULL || key == NULL)
-        return ERROR_INVALID_PARAMETER;
+        return return;
 
     //clear context
     context->i = 0;
     context->j = 0;
+
+    //initialize the s array
+    for (i = 0; i < 256; i++)
+    {
+        context->s[i] = i;
+    }
 
     //initialize the s array with identity permutation
     for (i = 0, j = 0; i < 256; i++)
@@ -58,10 +64,10 @@ void rc4Cipher(Rc4Context* context, const unsigned char* input, unsigned char* o
         s[j] = temp;
 
         //check input
-        if (input != NU:: && output != NULL)
+        if (input != NULL && output != NULL)
         {
             //xor input with rc4 stream
-            *output = *input ^ s[(s[i] + s[j]) % 256;
+            *output = *input ^ s[(s[i] + s[j]) % 256];
 
             //increment pointers
             input++;
@@ -79,5 +85,21 @@ void rc4Cipher(Rc4Context* context, const unsigned char* input, unsigned char* o
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    //initialization
+    unsigned char plaintext[] = "flag{c0ngratz_y0u_th3_r34l_k1ng}"; //replacement
+    unsigned char ciphertext[sizeof(plaintext)];
+    Rc4Context ctx = { 0 };
+
+    //key
+    unsigned char* key = "strongkey"; //replacement
+    rc4Init(&ctx, key, strlen((char*) key));
+
+    //encrypt
+    rc4Cipher(&ctx, ciphertext, plaintext, sizeof(ciphertext));
+
+    //print
+    std::cout << "enc : ";
+    for (int i = 0; i < sizeof(plaintext); i++)
+        printf("%02X", ciphertext[i]);
+    std::cout << std::endl;
 }
