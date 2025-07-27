@@ -1,3 +1,1 @@
-# malware-development
-
-testttt shellcode
+# JUST FOR EDUCATIONAL PURPOSES ONLY!!!!!!!!!!!!!
