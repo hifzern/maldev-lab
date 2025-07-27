@@ -85,10 +85,15 @@ void rc4Cipher(Rc4Context* context, const unsigned char* input, unsigned char* o
 
 int main()
 {
+    // ============ENCRYPT============
+    
     //initialization
     unsigned char plaintext[] = "flag{c0ngratz_y0u_th3_r34l_k1ng}"; //replacement
     unsigned char ciphertext[sizeof(plaintext)];
+    unsigned char decrypted[sizeof(plaintext)];
     Rc4Context ctx = { 0 };
+
+    std::cout << "plaintext : " << plaintext << std::endl;
 
     //key
     unsigned char* key = (unsigned char*)"strongkey"; //replacement
@@ -102,4 +107,15 @@ int main()
     for (int i = 0; i < sizeof(plaintext); i++)
         printf("%02X", ciphertext[i]);
     std::cout << std::endl;
+
+    // ========DECRYPT=========
+
+
+    //Initialization
+    Rc4Context ctx2 = { 0 };
+    rc4Init(&ctx2, key, strlen((char*)key));
+    rc4Cipher(&ctx2, ciphertext, decrypted, sizeof(plaintext));
+
+    //print
+    std::cout << "Dec : " << plaintext << std::endl;
 }
