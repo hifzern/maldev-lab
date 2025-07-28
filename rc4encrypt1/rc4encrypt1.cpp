@@ -117,5 +117,5 @@ int main()
     rc4Cipher(&ctx2, ciphertext, decrypted, sizeof(plaintext));
 
     //print
-    std::cout << "Dec : " << plaintext << std::endl;
+    std::cout << "dec : " << plaintext << std::endl;
 }
