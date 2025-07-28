@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36310.24 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rc4encrypt2", "rc4encrypt2\rc4encrypt2.vcxproj", "{F11914B9-9AF8-4ADC-A1EA-11F9435E5500}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rc4encrypt2", "rc4encrypt2.vcxproj", "{F11914B9-9AF8-4ADC-A1EA-11F9435E5500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {36710239-F815-4876-97C2-DFC15F76AA73}
+		SolutionGuid = {C1421398-E45D-4166-ACC5-524E4F83B974}
 	EndGlobalSection
 EndGlobal
