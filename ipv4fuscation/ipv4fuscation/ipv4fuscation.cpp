@@ -1,68 +1,58 @@
 #include <iostream>
-#include <Windows.h>
+#include <cstdio>
 
 // function takes in 4 raw bytes and return in ipv4
-char* GenerateIpv4(int a, int b, int c, int d) {
-    unsigned char Output [32];
+std::string GenerateIpv4(unsigned char a, unsigned char b, unsigned char c, unsigned char d) {
+    char buffer[16];
 
     //creating the ipv4 address and saving it into the output variable
-    sprintf(Output, "%d.%d.%d.%d", a, b, c, d);
+    std::snprintf(buffer, sizeof(buffer), "%u.%u.%u.%u", a, b, c, d);
 
-    //print output
-    printf("[i] Output : %s \n", Output);
-
-    return (char*)Output;
+    return std::string(buffer);
 }
 
 //generate the ipv4 output representation of the shellcode
 //function requires a pointer or base address to the shellcode buffer & the size of the shellcode buffer
-BOOL GenerateIpv4Output(unsigned char* pShellcode, SIZE_T ShellcodeSize) {
+bool GenerateIpv4Output(const unsigned char* pShellcode, size_t ShellcodeSize) {
     //if the shellcode buffer is null or the size is not a multiple of 4
-    if (pShellcode == NULL || ShellcodeSize == NULL || ShellcodeSize % 4 != 0) {
-        return FALSE;
+    if (!pShellcode || ShellcodeSize == 0 || ShellcodeSize % 4 != 0) {
+        std::cerr << "[!] Invalid Shellcode Input \n";
+        return false;
     }
-    printf("char* Ipv4Array[%d] = { \n\t", (int)(ShellcodeSize / 4));
+    size_t count = ShellcodeSize / 4;
+    std::cout << "char* Ipv4Arr[" << count << "] = {\n\t";
 
     // we will read one shellcode byte at a time, when the total is 4, begin generating the ipv4 address
     //the variable c is used to store the number of bytes read. by default starts at 4.
 
-    int c = 4, counter = 0;
-    char* IP = NULL;
-
-    for (int i = 0; i < ShellcodeSize; i++) {
+    for (size_t i = 0; i < ShellcodeSize; i += 4) {
         //track the number of bytes read and when they reach 4 we enter this if statement to begin generating the ipv4 address
-        if (c == 4) {
-            counter++;
-
-            //generate ipv4 address from 5 bytes which begin at i until [i + 3]
-            IP = GenerateIpv4(pShellcode[i], pShellcode[i + 1], pShellcode[i + 2], pShellcode[i + 3]);
-
-            if (i == ShellcodeSize - 4) {
-                //print the last ipv4 address
-                printf("\"%s\", ", IP);
-            }
-            else {
-                //print the ipv4 address
-                printf("\"%s\", ", IP);
-
-            }
-
-            c = 1;
-
-            //beautify output
-            if (counter % 8 == 0) {
-                printf("\n\t");
-            }
+        std::string ip = GenerateIpv4(pShellcode[i], pShellcode[i + 1], pShellcode[i + 2], pShellcode[i + 3]);
+        std::cout << "\"" << ip << "\"";
+        
+        if (i + 4 < ShellcodeSize) {
+            std::cout << ",";
         }
-        else {
-            c++;
+        
+        if (((i / 4) + 1) % 8 == 0 && (i + 4 < ShellcodeSize)) {
+            std::cout << "\n\t";
         }
     }
-    printf("\n};\n\n");
-    return TRUE;
+    std::cout << "\n};\n\n";
+    return true;
 }
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    unsigned char shellcode[] = {
+        0x90, 0x90, 0x90, 0x90, // NOP SLEDS
+        0x41, 0x42, 0x43, 0x44, // ABCD
+        0x01, 0x02, 0x03, 0x04,
+        0x7f, 0x00, 0x00, 0x01 //127.0.0.1
+    };
+
+    size_t size = sizeof(shellcode);
+    std::cout << "[i] Generating IPV4 Representation of shellcode \n";
+    GenerateIpv4Output(shellcode, size);
+    return 0;
 }
