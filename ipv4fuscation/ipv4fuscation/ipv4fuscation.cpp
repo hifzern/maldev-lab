@@ -35,8 +35,31 @@ BOOL GenerateIpv4Output(unsigned char* pShellcode, SIZE_T ShellcodeSize) {
             counter++;
 
             //generate ipv4 address from 5 bytes which begin at i until [i + 3]
+            IP = GenerateIpv4(pShellcode[i], pShellcode[i + 1], pShellcode[i + 2], pShellcode[i + 3]);
+
+            if (i == ShellcodeSize - 4) {
+                //print the last ipv4 address
+                printf("\"%s\", ", IP);
+            }
+            else {
+                //print the ipv4 address
+                printf("\"%s\", ", IP);
+
+            }
+
+            c = 1;
+
+            //beautify output
+            if (counter % 8 == 0) {
+                printf("\n\t");
+            }
+        }
+        else {
+            c++;
         }
     }
+    printf("\n};\n\n");
+    return TRUE;
 }
 
 int main()
