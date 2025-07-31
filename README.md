@@ -1,5 +1,5 @@
 # JUST FOR EDUCATIONAL PURPOSES ONLY!!!!!!!!!!!!!
-# maldev-lab
+# Malware-as-a-Services (Malaas)
 
 💉 A collection of small, focused malware development experiments — for learning & research purposes only.
 
