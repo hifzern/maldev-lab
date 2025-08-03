@@ -34,7 +34,7 @@ BOOL GetRemoteProcessHandle(IN LPWSTR szProcessName, OUT DWORD* dwProcessId, OUT
 			*dwProcessId = Proc.th32ProcessID;
 
 			//open handler to the proceess
-			*hprocess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Proc.th32ProcessID);
+			*hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Proc.th32ProcessID);
 			if (*hProcess = NULL) {
 				printf("[!] OpenProcess Failed with error : %d \n", GetLastError());
 			}
@@ -42,7 +42,7 @@ BOOL GetRemoteProcessHandle(IN LPWSTR szProcessName, OUT DWORD* dwProcessId, OUT
 		}
 		//retrieves information about the next process recorded the snapshot
 		//while process still remains in the snapsho, continuet looping
-	} while (Process32Next(hSnapShot, &Proc));
+	} while (Process32Next(hSnapshot, &Proc));
 
 	//cleanup
 _EndOfFunction: 
@@ -51,7 +51,14 @@ _EndOfFunction:
 	if (*dwProcessId == NULL || *hProcess == NULL)
 		return FALSE;
 	return TRUE;
+}
 
-	
+BOOL InjectDllToRemoteProcess(IN HANDLE hProcess, IN LPWSTR DllName) {
+	BOOL bSTATE = TRUE;
+	LPVOID pLoadLibraryW = NULL;
+	LPVOID pAddress = NULL;
+
+	// FETCHING THE SIZE OF DLLNAME IN BYTES
+	DWORD dwSizeToWrite = lstrlenW(DllName) * sizeof(WCHAR);
 
 }
