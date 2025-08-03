@@ -6,8 +6,7 @@
 BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hProcess) {
 	//according to the documentation:
 	//before calling the Process32First function, set this member to sizeof(PROCESSENTRY32)
-	// if dwsize is not initialized,  process32first fails
-
+	// if dwsize is not initialized,  process32first fail
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -17,7 +16,6 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 		std::wcerr << L"[!] CreateToolhelp32Snapshot Failed with error : " << GetLastError() << std::endl;
 		return FALSE;
 	}
-
 	BOOL found = FALSE;
 
 	//retrieves information about the first process encountered in the snapshot
@@ -36,7 +34,6 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 					FALSE,
 					procEntry.th32ProcessID
 				);
-
 				if (*hProcess == NULL) {
 					std::wcerr << L"[!] Openprocess failed with error : " << GetLastError() << std::endl;
 					return FALSE;
@@ -44,7 +41,6 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 				found = TRUE;
 				break;
 			}
-			
 		} while (Process32Next(hSnapshot, &procEntry));
 	}
 	CloseHandle(hSnapshot);
