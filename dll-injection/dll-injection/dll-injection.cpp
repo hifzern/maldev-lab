@@ -13,7 +13,7 @@ BOOL GetRemoteProcessHandle(IN LPWSTR szProcessName, OUT DWORD* dwProcessId, OUT
 	// Takes a snapshot of the currently running processes
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
 	if (hSnapshot == INVALID_HANDLE_VALUE) {
-		std::wcerr << L"[!] CreateToolhelp32Snapshot Failed with error : \n" << GetLastError() << std::endl;
+		std::wcerr << L"[!] CreateToolhelp32Snapshot Failed with error : " << GetLastError() << std::endl;
 		return FALSE;
 	}
 
@@ -37,7 +37,7 @@ BOOL GetRemoteProcessHandle(IN LPWSTR szProcessName, OUT DWORD* dwProcessId, OUT
 				);
 
 				if (*hProcess == NULL) {
-					std::wcerr << "[!] OpenProcess Failed with error : \n" << GetLastError() << std::endl;
+					std::wcerr << "[!] OpenProcess Failed with error : " << GetLastError() << std::endl;
 					CloseHandle(hSnapshot);
 					return FALSE;
 				}
@@ -52,60 +52,47 @@ BOOL GetRemoteProcessHandle(IN LPWSTR szProcessName, OUT DWORD* dwProcessId, OUT
 	return found;
 }
 
-BOOL InjectDllToRemoteProcess(IN HANDLE hProcess, IN LPWSTR DllName) {
-	SIZE_T dllPathLen = (wcslen(dllPath))
+BOOL InjectDllToRemoteProcess(IN HANDLE hProcess, IN LPWSTR dllPath) {
+	SIZE_T dllPathLen = (wcslen(dllPath) + 1) * sizeof(WCHAR);
+	SIZE_T bytesWritten = 0;
 
-	BOOL bSTATE = TRUE;
-	LPVOID pLoadLibraryW = NULL;
-	LPVOID pAddress = NULL;
-
-	// FETCHING THE SIZE OF DLLNAME IN BYTES
-	DWORD dwSizeToWrite = lstrlenW(DllName) * sizeof(WCHAR);
-
-	SIZE_T lpNumberOfBytesWritten = 0;
-	HANDLE hThread = NULL;
-
-	pLoadLibraryW = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
-	if (pLoadLibraryW == NULL) {
-		printf("[!] GetProcAddress Failed with error : %d \n", GetLastError());
-		bSTATE = FALSE;
+	LPVOID remoteMem = VirtualAllocEx(hProcess, NULL, dllPathLen, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (!remoteMem) {
+		std::wcerr << L"[!] VirtualAllocEx Failed with error : " << GetLastError() << std::endl;
 		return FALSE;
 	}
 
-	pAddress = VirtualAllocEx(hProcess, NULL, dwSizeToWrite, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	if (pAddress == NULL) {
-		printf("[!] VirtualAllocEx Failed with error : %d \n", GetLastError());
-		bSTATE = FALSE;
-		return FALSE;
-	}
-	printf("[i] pAddress Allocated at : 0x%p Of Size : %d \n", pAddress, dwSizeToWrite);
-	printf("[#] Press <enter> To Run ...");
-	getchar();
-
-	if (!WriteProcessMemory(hProcess, pAddress, DllName, dwSizeToWrite, &lpNumberOfBytesWritten) || lpNumberOfBytesWritten != dwSizeToWrite) {
-		printf("[!] WriteProcessMemory Failed with error : %d \n", GetLastError());
-		bSTATE = FALSE;
+	if (!WriteProcessMemory(hProcess, remoteMem, dllPath, dllPathLen, &bytesWritten) || bytesWritten != dllPathLen) {
+		std::wcerr << L"[!] WriteProcessMemory Failed with error : " << GetLastError() << std::endl;
+		VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
 		return FALSE;
 	}
 
-
-	printf("[i] Successfully Written %d Bytes \n", lpNumberOfBytesWritten);
-	printf("[#] Press <enter> To Run ...");
-	getchar();
-
-	printf("[i] Executing Payload...");
-	hThread = CreateRemoteThread(hProcess, NULL, NULL, pLoadLibraryW, pAddress, NULL, NULL);
-	if (hThread == NULL) {
-		printf("[!] CreateRemoteThread Failed with error : %d \n", GetLastError());
-		bSTATE = FALSE;
+	HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
+	if (!hKernel32) {
+		std::wcerr << L"[!] GetModuleHandle Failed with error :" << GetLastError() << std::endl;
+		VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
 		return FALSE;
 	}
-	printf("[+] DONE \n");
 
-_EndOfFunction:
-	if (hThread != NULL)
-		CloseHandle(hThread);
-	return bSTATE;
+	LPVOID pLoadLibraryW = GetProcAddress(hKernel32, "LoadLibraryW");
+	if (!pLoadLibraryW) {
+		std::wcerr << L"[!] GetProcAddress Failed with error :" << GetLastError() << std::endl;
+		VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+		return FALSE;
+	}
+
+	HANDLE hRemoteThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)pLoadLibraryW, remoteMem, 0, NULL);
+	if (hRemoteThread == NULL) {
+		std::wcerr << L"[!] CreateRemoteThread Failed with error :" << GetLastError() << std::endl;
+		VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+		return FALSE;
+	}
+	WaitForSingleObject(hRemoteThread, INFINITE);
+	CloseHandle(hRemoteThread);
+	VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+
+	return TRUE;
 }
 
 int wmain(int argc, wchar_t* argv[]) {
@@ -123,4 +110,13 @@ int wmain(int argc, wchar_t* argv[]) {
 	}
 
 	std::wcout << L"[+] Found process ID : " << pid << std::endl;
+
+	if (!InjectDllToRemoteProcess(hProcess, argv[2])) {
+		std::wcerr << L"[!] Dll Injection Failed" << std::endl;
+		return 1;
+	}
+
+	std::wcout << L"[+] DLL Injection Successfully " << std::endl;
+	CloseHandle(hProcess);
+	return 0;
 }
