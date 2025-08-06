@@ -111,7 +111,7 @@ int wmain(int argc, wchar_t* argv[]) {
 	std::wcout << L"[+] Got Handle to process ID : " << dwProcessId << std::endl;
 
 	BYTE shellcode[]{
-		0x00, 0x00, 0x00, 0x00 //CRAFTING AJA SENDIRI
+		0x00, 0x00, 0x00, 0x00 //CRAFTING AJA SENDIRI TERSERAH SI MAU PAKE APA
 	};
 	SIZE_T shellcodeSize = sizeof(shellcode);
 
