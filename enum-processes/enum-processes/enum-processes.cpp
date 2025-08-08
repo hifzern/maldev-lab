@@ -24,9 +24,7 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 		//if process !null
 		if (adwProcesses[i] != NULL) {
 
-
 			//open process handle
-			
 			if ((hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, adwProcesses[i])) != NULL) {
 				//if handle is valid
 				//get andle of a module in the process 'hProcess'
@@ -42,13 +40,13 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 					}
 					else {
 						//perform the comparison logic
-						if (!wcscmp(szProcName, szProc)) {
+						if (wcscmp(szProcName, szProc) == 0) {
 							std::wcout << L"[+] FOUND " << szProc << L" - Of Pid : " << adwProcesses[i] << std::endl;
 
 							//return by reference
 							*pdwPid = adwProcesses[i];
 							*phProcess = hProcess;
-							return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -64,7 +62,21 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 	else {
 		return TRUE;
 	}
+}
 
 
-	return TRUE;
+int main() {
+	DWORD pid = 0;
+	HANDLE hProc = NULL;
+	LPCWSTR targetProcName = L"notepad.exe";
+
+	if (GetRemoteProcessHandle(targetProcName, &pid, &hProc)) {
+		std::wcout << L"[i] Got handle to process " << targetProcName << L" With Pid : " << pid << std::endl;
+		CloseHandle(hProc);
+	}
+	else {
+		std::wcerr << L"[!] Failed to get handle to " << targetProcName << std::endl;
+	}
+
+	return 0;
 }
