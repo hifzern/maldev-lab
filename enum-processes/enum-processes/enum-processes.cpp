@@ -22,12 +22,12 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 
 	for (int i = 0; i < dwNmbrOfPids; i++) {
 		//if process !null
-		if (!adwProcesses[i]) {
+		if (adwProcesses[i] != NULL) {
 
 
 			//open process handle
 			
-			if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, adwProcesses[i]))) {
+			if ((hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, adwProcesses[i])) != NULL) {
 				//if handle is valid
 				//get andle of a module in the process 'hProcess'
 				//the module handle is needed for 'GetModuleBaseName'
@@ -48,7 +48,7 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 							//return by reference
 							*pdwPid = adwProcesses[i];
 							*phProcess = hProcess;
-							break;
+							return FALSE;
 						}
 					}
 				}
@@ -58,7 +58,7 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 	}
 	
 	//check if pdwPid or phProcess are NULL
-	if (!*pdwPid || !*phProcess) {
+	if (*pdwPid == NULL || *phProcess == NULL) {
 		return FALSE;
 	}
 	else {
