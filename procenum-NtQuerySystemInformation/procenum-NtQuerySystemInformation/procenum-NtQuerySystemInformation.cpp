@@ -8,8 +8,24 @@ using fnNtQuerySystemInformation = NTSTATUS(NTAPI*)(
 	);
 
 BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess) {
-	fnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
-	ULONG uReturnLen1 = NULL, uReturnLen2 = NULL;
+	if (!szProcName || !pdwPid || !phProcess) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+	*pdwPid = 0;
+	*phProcess = nullptr;
+
+	HMODULE hNtdll = GetModuleHandleW(L"ntdll.dll");
+	if (!hNtdll) return FALSE;
+
+	auto pNtQuerySystemInformation = (fnNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
+	if (!pNtQuerySystemInformation) return FALSE;
+
+	ULONG bufSize = 0;
+	NTSTATUS status = pNtQuerySystemInformation(SystemProcessInformation, nullptr, 0, &bufSize);
+	if (status != STATUS_INFO_LENGTH_MISMATCH && !NT_SUCCESS(status))return FALSE;
+	
+	PBYTE buffer = nullptr;
 
 	pNtQuerySystemInformation = (fnNtQuerySystemInformation)GetProcAddress(GetModuleHandle(L"NTDLL.DLL"),
 		"NtQuerySystemInformation");
