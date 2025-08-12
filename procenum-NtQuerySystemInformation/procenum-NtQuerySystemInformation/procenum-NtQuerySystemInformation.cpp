@@ -1,15 +1,24 @@
-#include <stdio.h>
+#include <iostream>
 #include <Windows.h>
 #include <winternl.h>
 
+
 BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess) {
-	fnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
+	fNtQuerySystemInformation pNtQuerySystemInformation = NULL;
+	ULONG uReturnLen1 = NULL, uReturnLen2 = NULL;
+	PSYSTEM_PROCESS_INFORMATION SystemProcInfo = NULL;
+	NTSTATUS STATUS = NULL;
+	PVOID pValueToFree = NULL;
+
 	pNtQuerySystemInformation = (fnNtQuerySystemInformation)GetProcAddress(GetModuleHandle(L"NTDLL.DLL"),
 		"NtQuerySystemInformation");
 	if (!pNtQuerySystemInformation) {
 		std::wcerr << L"[!] GetProcAddress Failed With error : " << GetLastError() << std::endl;
 		return FALSE;
 	}
+
+	pNtQuerySystemInformation(SystemProcessInformation, NULL, NULL, &uReturnLen1)
+
 
 	
 }
