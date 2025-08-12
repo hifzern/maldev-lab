@@ -1,7 +1,11 @@
 #include <iostream>
 #include <Windows.h>
 #include <winternl.h>
+#include <ntstatus.h>
 
+using fnNtQuerySystemInformation = NTSTATUS(NTAPI*)(
+	SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG
+	);
 
 BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess) {
 	fnNtQuerySystemInformation pNtQuerySystemInformation = NULL;
