@@ -55,5 +55,25 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 	else {
 		return TRUE;
 	}
+}
 
+int wmain(int argc, wchar_t* argv[]) {
+	if (argc < 2) {
+		std::wcout << L"Usage : " << argv[0] << L" <Processname.exe> " << std::endl;
+		return 0;
+	}
+
+	DWORD pid{};
+	HANDLE hProc{};
+	if (GetRemoteProcessHandle(argv[1], &pid, &hProc)) {
+		std::wcout << L"[+] Found " << argv[1] << L" PID : " << pid << std::endl;
+		if (hProc) {
+			std::wcout << L"[+] Handle process valid " << std::endl;
+			CloseHandle(hProc);
+		}
+	}
+	else {
+		std::wcerr << L"[!] Failed with error : " << GetLastError() << std::endl;
+	}
+	return 0;
 }
