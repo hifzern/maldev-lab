@@ -29,7 +29,31 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 		return FALSE;
 	}
 	while (TRUE) {
-		//check the process name file
+		//check the process name file, comparing the enumerated process name to the intended target process
+		if (!SystemProcInfo->ImageName.Length && wcscmp(SystemProcInfo->ImageName.Buffer, szProcName)) {
+			//opening a handle to the target process, saving it, and then breaking
+			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
+			*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
+			break;
+		}
+
+		//if nextentryoffset is 0, we reached the end of the array
+		if (!SystemProcInfo->NextEntryOffset) {
+			break;
+		}
+		//move to the next element in the array
+		SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
+	}
+
+	//free using the initial address
+	HeapFree(GetProcessHeap(), 0, pValueToFree);
+
+	//check if we successfully got the target process handle
+	if (!*pdwPid || !*phProcess) {
+		return FALSE;
+	}
+	else {
+		return TRUE;
 	}
 
 }
