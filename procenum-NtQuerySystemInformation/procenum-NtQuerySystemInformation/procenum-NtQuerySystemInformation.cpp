@@ -17,8 +17,9 @@ BOOL GetRemoteProcessHandle(LPCWSTR szProcName, DWORD* pdwPid, HANDLE* phProcess
 		return FALSE;
 	}
 
-	pNtQuerySystemInformation(SystemProcessInformation, NULL, NULL, &uReturnLen1)
-
-
-	
+	pNtQuerySystemInformation(SystemProcessInformation, NULL, NULL, &uReturnLen1);
+	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (SIZE_T)uReturnLen1);
+	if (!SystemProcInfo) {
+		std::wcerr <<
+	}
 }
