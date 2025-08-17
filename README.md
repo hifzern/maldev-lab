@@ -1,5 +1,5 @@
 # JUST FOR EDUCATIONAL PURPOSES ONLY!!!!!!!!!!!!!
-# Malware-as-a-Services (Malaas)
+# Malware Common Techniques
 
 💉 A collection of small, focused malware development experiments for learning & research purposes only.
 
