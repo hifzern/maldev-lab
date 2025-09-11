@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{df507949-6f5c-469e-9d16-003b94b97156}</ProjectGuid>
-    <RootNamespace>payloadstagingwebserver</RootNamespace>
+    <ProjectGuid>{27f0fda7-3825-495c-92b7-ccc63cfc072d}</ProjectGuid>
+    <RootNamespace>threadhijackremote</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -123,7 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="payload-staging-web-server.cpp" />
+    <ClCompile Include="thread-hijack-remote.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

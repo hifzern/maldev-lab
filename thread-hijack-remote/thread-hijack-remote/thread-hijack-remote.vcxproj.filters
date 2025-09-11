@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="payload-staging-web-server.cpp">
+    <ClCompile Include="thread-hijack-remote.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
